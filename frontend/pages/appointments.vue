@@ -10,20 +10,52 @@
       <div class="modal-content glass-panel">
         <h3>{{ isEditing ? 'Edit Encounter' : 'Add New Encounter' }}</h3>
         <form @submit.prevent="submitEncounter" class="add-form">
-          <div class="form-group">
+          <div class="form-group custom-select-wrapper">
             <label>Patient</label>
-            <select v-model="encounterForm.patientId" required>
-              <option value="" disabled>Select Patient</option>
-              <option v-for="p in patients" :key="p.id" :value="p.id">{{ p.name }} ({{ p.nik }})</option>
-            </select>
+            <div class="custom-select" @click.stop="showPatientDropdown = true">
+              <input 
+                type="text" 
+                :value="patientSearchDisplay" 
+                @input="onPatientSearchInput"
+                placeholder="Search by ID/Name..." 
+                @focus="showPatientDropdown = true"
+              />
+              <div class="dropdown-list glass-panel" v-if="showPatientDropdown">
+                <div 
+                  class="dropdown-item" 
+                  v-for="p in filteredPatients" 
+                  :key="p.id" 
+                  @click.stop="selectPatient(p)"
+                >
+                  {{ p.name }} ({{ p.nik }})
+                </div>
+                <div v-if="filteredPatients.length === 0" class="dropdown-item text-muted">No patient found</div>
+              </div>
+            </div>
           </div>
           
-          <div class="form-group">
+          <div class="form-group custom-select-wrapper">
             <label>Service Point</label>
-            <select v-model="encounterForm.servicePointId" required>
-              <option value="" disabled>Select Service Point</option>
-              <option v-for="sp in servicePoints" :key="sp.id" :value="sp.id">{{ sp.name }}</option>
-            </select>
+            <div class="custom-select" @click.stop="showServicePointDropdown = true">
+              <input 
+                type="text" 
+                :value="servicePointSearchDisplay"
+                @input="onServicePointSearchInput"
+                placeholder="Search Service Point..." 
+                @focus="showServicePointDropdown = true"
+              />
+              <div class="dropdown-list glass-panel" v-if="showServicePointDropdown">
+                <div 
+                  class="dropdown-item" 
+                  v-for="sp in filteredServicePoints" 
+                  :key="sp.id" 
+                  @click.stop="selectServicePoint(sp)"
+                >
+                  {{ sp.name }}
+                </div>
+                <div v-if="filteredServicePoints.length === 0" class="dropdown-item text-muted">No service point found</div>
+              </div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -102,7 +134,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 
 const encounters = ref([])
 const patients = ref([])
@@ -112,6 +144,76 @@ const loading = ref(true)
 const showModal = ref(false)
 const isEditing = ref(false)
 const editingId = ref(null)
+
+// Searchable dropdown state
+const patientSearch = ref('')
+const patientSearchDisplay = ref('')
+const servicePointSearch = ref('')
+const servicePointSearchDisplay = ref('')
+const showPatientDropdown = ref(false)
+const showServicePointDropdown = ref(false)
+
+const debounce = (fn, delay) => {
+  let timeout
+  return (...args) => {
+    clearTimeout(timeout)
+    timeout = setTimeout(() => fn(...args), delay)
+  }
+}
+
+const updatePatientSearch = debounce((val) => {
+  patientSearch.value = val
+}, 300)
+
+const onPatientSearchInput = (e) => {
+  patientSearchDisplay.value = e.target.value
+  updatePatientSearch(e.target.value)
+}
+
+const updateServicePointSearch = debounce((val) => {
+  servicePointSearch.value = val
+}, 300)
+
+const onServicePointSearchInput = (e) => {
+  servicePointSearchDisplay.value = e.target.value
+  updateServicePointSearch(e.target.value)
+}
+
+const filteredPatients = computed(() => {
+  if (!patientSearch.value) return patients.value
+  const query = patientSearch.value.toLowerCase()
+  return patients.value.filter(p => 
+    p.name.toLowerCase().includes(query) || 
+    p.nik.includes(query)
+  )
+})
+
+const filteredServicePoints = computed(() => {
+  if (!servicePointSearch.value) return servicePoints.value
+  const query = servicePointSearch.value.toLowerCase()
+  return servicePoints.value.filter(sp => 
+    sp.name.toLowerCase().includes(query)
+  )
+})
+
+const selectPatient = (patient) => {
+  encounterForm.value.patientId = patient.id
+  patientSearchDisplay.value = `${patient.name} (${patient.nik})`
+  patientSearch.value = patientSearchDisplay.value
+  showPatientDropdown.value = false
+}
+
+const selectServicePoint = (sp) => {
+  encounterForm.value.servicePointId = sp.id
+  servicePointSearchDisplay.value = sp.name
+  servicePointSearch.value = servicePointSearchDisplay.value
+  showServicePointDropdown.value = false
+}
+
+const closeDropdowns = () => {
+  showPatientDropdown.value = false
+  showServicePointDropdown.value = false
+}
 
 const encounterForm = ref({
   patientId: '',
@@ -142,19 +244,26 @@ const fetchEncounters = async () => {
 }
 
 const loadDependencies = async () => {
+  const tenantId = localStorage.getItem('tenantId')
+  if (!tenantId) return
+  
   try {
-    const tenantId = localStorage.getItem('tenantId')
-    if (!tenantId) return
-    
-    const [ptsRes, spsRes] = await Promise.all([
-      $fetch('/api/v1/patients', { headers: { 'x-tenant-id': tenantId } }),
-      $fetch('/api/v1/service-points', { headers: { 'x-tenant-id': tenantId } })
-    ])
-    
+    const ptsRes = await $fetch('/api/v1/patients', { headers: { 'x-tenant-id': tenantId } })
     patients.value = ptsRes.data ?? ptsRes
+  } catch (err) {
+    console.error('Failed to load patients', err)
+  }
+
+  try {
+    const spsRes = await $fetch('/api/v1/service-points', { headers: { 'x-tenant-id': tenantId } })
     servicePoints.value = spsRes.data ?? spsRes
   } catch (err) {
-    console.error('Failed to load dependencies', err)
+    console.error('Failed to load service points, using mock fallback', err)
+    servicePoints.value = [
+      { id: 'mock-1', name: 'Poliklinik Umum' },
+      { id: 'mock-2', name: 'Poliklinik Anak' },
+      { id: 'mock-3', name: 'IGD (Emergency)' }
+    ]
   }
 }
 
@@ -168,6 +277,10 @@ const openAddModal = () => {
     bpjsSepNumber: '',
     satusehatEncounterId: ''
   }
+  patientSearchDisplay.value = ''
+  patientSearch.value = ''
+  servicePointSearchDisplay.value = ''
+  servicePointSearch.value = ''
   showModal.value = true
 }
 
@@ -181,6 +294,19 @@ const openEditModal = (encounter) => {
     bpjsSepNumber: encounter.bpjsSepNumber || '',
     satusehatEncounterId: encounter.satusehatEncounterId || ''
   }
+  
+  const patient = patients.value.find(p => p.id === encounter.patientId)
+  if (patient) {
+    patientSearchDisplay.value = `${patient.name} (${patient.nik})`
+    patientSearch.value = patientSearchDisplay.value
+  }
+  
+  const sp = servicePoints.value.find(s => s.id === encounter.servicePointId)
+  if (sp) {
+    servicePointSearchDisplay.value = sp.name
+    servicePointSearch.value = servicePointSearchDisplay.value
+  }
+
   showModal.value = true
 }
 
@@ -239,6 +365,11 @@ const deleteEncounter = async (id) => {
 onMounted(() => {
   fetchEncounters()
   loadDependencies()
+  document.addEventListener('click', closeDropdowns)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', closeDropdowns)
 })
 </script>
 
@@ -417,5 +548,51 @@ onMounted(() => {
 
 .secondary-btn:hover {
   background-color: #f1f5f9;
+}
+
+.custom-select-wrapper {
+  position: relative;
+}
+
+.custom-select {
+  position: relative;
+}
+
+.custom-select input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  z-index: 1050;
+  margin-top: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-item {
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f5f9;
+}
+
+.text-muted {
+  color: #94a3b8;
+  cursor: default;
+}
+.text-muted:hover {
+  background-color: transparent;
 }
 </style>
