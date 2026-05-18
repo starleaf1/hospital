@@ -70,4 +70,21 @@ export class EncounterController {
       next(error);
     }
   }
+
+  static async getAllEncounters(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenantId = (req as any).tenantId;
+      const encounters = await prisma.encounter.findMany({
+        where: { tenantId },
+        include: {
+          patient: true,
+          servicePoint: true
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+      res.json({ data: encounters });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

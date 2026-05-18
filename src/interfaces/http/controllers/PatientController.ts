@@ -22,4 +22,17 @@ export class PatientController {
       next(error);
     }
   }
+
+  static async getAllPatients(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenantId = (req as any).tenantId;
+      const patients = await prisma.patient.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' }
+      });
+      res.json({ data: patients });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
