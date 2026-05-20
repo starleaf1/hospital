@@ -7,6 +7,8 @@
           <li><NuxtLink to="/">{{ t('dashboard') }}</NuxtLink></li>
           <li><NuxtLink to="/patients">{{ t('patients') }}</NuxtLink></li>
           <li><NuxtLink to="/appointments">{{ t('appointments') }}</NuxtLink></li>
+          <li><NuxtLink to="/doctor">{{ t('doctor') }}</NuxtLink></li>
+          <li><NuxtLink to="/cashier">{{ t('cashier') }}</NuxtLink></li>
           <li><NuxtLink to="/settings">{{ t('settings') }}</NuxtLink></li>
         </ul>
       </nav>

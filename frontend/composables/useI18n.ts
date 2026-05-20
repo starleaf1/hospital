@@ -6,6 +6,8 @@ const translations = {
     dashboard: 'Dashboard',
     patients: 'Patients',
     appointments: 'Appointments',
+    doctor: 'Doctor Desk',
+    cashier: 'Cashier Desk',
     settings: 'Settings',
     logout: 'Logout',
     
@@ -109,6 +111,8 @@ const translations = {
     dashboard: 'Dasbor',
     patients: 'Pasien',
     appointments: 'Kunjungan',
+    doctor: 'Meja Dokter',
+    cashier: 'Kasir',
     settings: 'Pengaturan',
     logout: 'Keluar',
     
