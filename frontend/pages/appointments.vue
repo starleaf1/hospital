@@ -1,23 +1,23 @@
 <template>
   <div class="appointments-page">
     <div class="header">
-      <h2>Appointments & Encounters</h2>
-      <button class="primary-btn" @click="openAddModal">New Encounter</button>
+      <h2>{{ t('appointmentsAndEncounters') }}</h2>
+      <button class="primary-btn" @click="openAddModal">{{ t('newEncounter') }}</button>
     </div>
 
     <!-- ADD/EDIT ENCOUNTER MODAL -->
     <div class="modal-overlay" v-if="showModal">
       <div class="modal-content glass-panel">
-        <h3>{{ isEditing ? 'Edit Encounter' : 'Add New Encounter' }}</h3>
+        <h3>{{ isEditing ? t('editEncounter') : t('addNewEncounter') }}</h3>
         <form @submit.prevent="submitEncounter" class="add-form">
           <div class="form-group custom-select-wrapper">
-            <label>Patient</label>
+            <label>{{ t('patient') }}</label>
             <div class="custom-select" @click.stop="showPatientDropdown = true">
               <input 
                 type="text" 
                 :value="patientSearchDisplay" 
                 @input="onPatientSearchInput"
-                placeholder="Search by ID/Name..." 
+                :placeholder="t('searchPatientPlaceholder')" 
                 @focus="showPatientDropdown = true"
               />
               <div class="dropdown-list glass-panel" v-if="showPatientDropdown">
@@ -29,19 +29,19 @@
                 >
                   {{ p.name }} ({{ p.nik }})
                 </div>
-                <div v-if="filteredPatients.length === 0" class="dropdown-item text-muted">No patient found</div>
+                <div v-if="filteredPatients.length === 0" class="dropdown-item text-muted">{{ t('noPatientFound') }}</div>
               </div>
             </div>
           </div>
           
           <div class="form-group custom-select-wrapper">
-            <label>Service Point</label>
+            <label>{{ t('servicePoint') }}</label>
             <div class="custom-select" @click.stop="showServicePointDropdown = true">
               <input 
                 type="text" 
                 :value="servicePointSearchDisplay"
                 @input="onServicePointSearchInput"
-                placeholder="Search Service Point..." 
+                :placeholder="t('searchServicePointPlaceholder')" 
                 @focus="showServicePointDropdown = true"
               />
               <div class="dropdown-list glass-panel" v-if="showServicePointDropdown">
@@ -53,53 +53,53 @@
                 >
                   {{ sp.name }}
                 </div>
-                <div v-if="filteredServicePoints.length === 0" class="dropdown-item text-muted">No service point found</div>
+                <div v-if="filteredServicePoints.length === 0" class="dropdown-item text-muted">{{ t('noServicePointFound') }}</div>
               </div>
             </div>
           </div>
 
           <div class="form-group">
-            <label>Status</label>
+            <label>{{ t('status') }}</label>
             <select v-model="encounterForm.status" required>
-              <option value="WAITING">WAITING</option>
-              <option value="IN_PROGRESS">IN_PROGRESS</option>
-              <option value="COMPLETED">COMPLETED</option>
+              <option value="WAITING">{{ t('waiting') }}</option>
+              <option value="IN_PROGRESS">{{ t('in_progress') }}</option>
+              <option value="COMPLETED">{{ t('completed') }}</option>
             </select>
           </div>
           
           <div class="form-group">
-            <label>BPJS SEP Number</label>
-            <input type="text" v-model="encounterForm.bpjsSepNumber" placeholder="Optional" />
+            <label>{{ t('bpjsSepNumber') }}</label>
+            <input type="text" v-model="encounterForm.bpjsSepNumber" :placeholder="t('optional')" />
           </div>
 
           <div class="form-group">
-            <label>SATUSEHAT Encounter ID</label>
-            <input type="text" v-model="encounterForm.satusehatEncounterId" placeholder="Optional" />
+            <label>{{ t('satusehatEncounterId') }}</label>
+            <input type="text" v-model="encounterForm.satusehatEncounterId" :placeholder="t('optional')" />
           </div>
 
           <div class="modal-actions">
-            <button type="button" class="secondary-btn" @click="closeModal">Cancel</button>
-            <button type="submit" class="primary-btn">{{ isEditing ? 'Update' : 'Save' }}</button>
+            <button type="button" class="secondary-btn" @click="closeModal">{{ t('cancel') }}</button>
+            <button type="submit" class="primary-btn">{{ isEditing ? t('update') : t('save') }}</button>
           </div>
         </form>
       </div>
     </div>
 
     <div class="glass-panel content-card" v-if="loading">
-      Loading encounters...
+      {{ t('loadingEncounters') }}
     </div>
     
     <div class="glass-panel content-card" v-else>
       <table class="data-table">
         <thead>
           <tr>
-            <th>Patient Name</th>
-            <th>Service Point</th>
-            <th>Status</th>
-            <th>BPJS SEP</th>
-            <th>SATUSEHAT Sync</th>
-            <th>Date</th>
-            <th>Actions</th>
+            <th>{{ t('patientName') }}</th>
+            <th>{{ t('servicePoint') }}</th>
+            <th>{{ t('status') }}</th>
+            <th>{{ t('bpjsSep') }}</th>
+            <th>{{ t('satusehatSync') }}</th>
+            <th>{{ t('date') }}</th>
+            <th>{{ t('actions') }}</th>
           </tr>
         </thead>
         <tbody>
@@ -108,15 +108,15 @@
             <td>{{ encounter.servicePoint?.name ?? 'Unknown' }}</td>
             <td>
               <span class="status-badge" :class="encounter.status.toLowerCase()">
-                {{ encounter.status }}
+                {{ t(encounter.status.toLowerCase()) }}
               </span>
             </td>
-            <td>{{ encounter.bpjsSepNumber || '-' }}</td>
+            <td>{{ encounter.bpjsSepNumber ?? '-' }}</td>
             <td>
-              <span v-if="encounter.satusehatEncounterId" class="sync-badge success">Synced</span>
-              <span v-else class="sync-badge pending">Pending</span>
+              <span v-if="encounter.satusehatEncounterId" class="sync-badge success">{{ t('synced') }}</span>
+              <span v-else class="sync-badge pending">{{ t('pending') }}</span>
             </td>
-            <td>{{ new Date(encounter.createdAt).toLocaleString() }}</td>
+            <td>{{ formatDateTime(encounter.createdAt) }}</td>
             <td>
               <div class="action-buttons">
                 <button class="icon-btn edit-btn" @click="openEditModal(encounter)">✏️</button>
@@ -125,7 +125,7 @@
             </td>
           </tr>
           <tr v-if="encounters.length === 0">
-            <td colspan="7" class="empty-state">No encounters found.</td>
+            <td colspan="7" class="empty-state">{{ t('noEncountersFound') }}</td>
           </tr>
         </tbody>
       </table>
@@ -135,6 +135,9 @@
 
 <script setup>
 import { ref, onMounted, computed, onUnmounted } from 'vue'
+import { useI18n } from '~/composables/useI18n'
+
+const { t, formatDateTime } = useI18n()
 
 const encounters = ref([])
 const patients = ref([])
@@ -291,8 +294,8 @@ const openEditModal = (encounter) => {
     patientId: encounter.patientId,
     servicePointId: encounter.servicePointId,
     status: encounter.status,
-    bpjsSepNumber: encounter.bpjsSepNumber || '',
-    satusehatEncounterId: encounter.satusehatEncounterId || ''
+    bpjsSepNumber: encounter.bpjsSepNumber ?? '',
+    satusehatEncounterId: encounter.satusehatEncounterId ?? ''
   }
   
   const patient = patients.value.find(p => p.id === encounter.patientId)
@@ -342,12 +345,12 @@ const submitEncounter = async () => {
     await fetchEncounters()
   } catch (error) {
     console.error('Error saving encounter', error)
-    alert('Failed to save encounter')
+    alert(t('failedToSaveEncounter'))
   }
 }
 
 const deleteEncounter = async (id) => {
-  if (!confirm('Are you sure you want to delete this encounter?')) return
+  if (!confirm(t('deleteEncounterConfirm'))) return
   
   try {
     const tenantId = localStorage.getItem('tenantId')
@@ -358,7 +361,7 @@ const deleteEncounter = async (id) => {
     await fetchEncounters()
   } catch (error) {
     console.error('Error deleting encounter', error)
-    alert('Failed to delete encounter')
+    alert(t('failedToDeleteEncounter'))
   }
 }
 
@@ -367,6 +370,7 @@ onMounted(() => {
   loadDependencies()
   document.addEventListener('click', closeDropdowns)
 })
+
 
 onUnmounted(() => {
   document.removeEventListener('click', closeDropdowns)

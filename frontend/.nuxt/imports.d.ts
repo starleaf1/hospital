@@ -31,6 +31,7 @@ export { setInterval } from '#app/compat/interval';
 export { definePageMeta } from '../node_modules/nuxt/dist/pages/runtime/composables';
 export { defineLazyHydrationComponent } from '#app/composables/lazy-hydration';
 export { useEncounters } from '../composables/useEncounters';
+export { useI18n } from '../composables/useI18n';
 export { usePatients } from '../composables/usePatients';
 export { useServicePoints } from '../composables/useServicePoints';
 export { useTenants } from '../composables/useTenants';

@@ -1,20 +1,37 @@
 <template>
   <div class="login-container">
+    <div class="floating-lang-selector">
+      <button 
+        class="lang-btn" 
+        :class="{ active: locale === 'en' }" 
+        @click="setLocale('en')"
+      >
+        🇺🇸 EN
+      </button>
+      <button 
+        class="lang-btn" 
+        :class="{ active: locale === 'id' }" 
+        @click="setLocale('id')"
+      >
+        🇮🇩 ID
+      </button>
+    </div>
+
     <div class="login-card glass-panel">
       <div class="logo">SIMRS Pro</div>
-      <h2>Hospital Admin Login</h2>
-      <p class="subtitle">Sign in to manage your tenant</p>
+      <h2>{{ t('hospitalAdminLogin') }}</h2>
+      <p class="subtitle">{{ t('signInSubtitle') }}</p>
 
       <form @submit.prevent="handleLogin" class="login-form">
         <div class="form-group">
-          <label>Email</label>
+          <label>{{ t('email') }}</label>
           <input type="email" v-model="email" placeholder="admin@citycentral.com" required />
         </div>
         <div class="form-group">
-          <label>Password</label>
+          <label>{{ t('password') }}</label>
           <input type="password" v-model="password" placeholder="••••••••" required />
         </div>
-        <button type="submit" class="login-btn">Sign In</button>
+        <button type="submit" class="login-btn">{{ t('signIn') }}</button>
       </form>
     </div>
   </div>
@@ -23,6 +40,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from '~/composables/useI18n'
 
 definePageMeta({
   layout: false // Do not use the dashboard layout for login page
@@ -31,6 +49,8 @@ definePageMeta({
 const router = useRouter()
 const email = ref('admin@citycentral.com')
 const password = ref('admin123')
+
+const { locale, setLocale, t } = useI18n()
 
 const handleLogin = async () => {
   try {
@@ -47,7 +67,7 @@ const handleLogin = async () => {
     router.push('/')
   } catch (error) {
     console.error('Login failed', error)
-    alert('Login failed. Please check credentials.')
+    alert(t('loginFailed'))
   }
 }
 </script>
@@ -59,6 +79,46 @@ const handleLogin = async () => {
   justify-content: center;
   min-height: 100vh;
   background: linear-gradient(135deg, #f0fdf4 0%, #dbeafe 100%);
+  position: relative;
+}
+
+.floating-lang-selector {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  gap: 0.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.lang-btn:hover {
+  color: var(--text-color);
+}
+
+.lang-btn.active {
+  background-color: white;
+  color: var(--primary-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .login-card {

@@ -1,37 +1,37 @@
 <template>
   <div class="dashboard">
     <div class="header">
-      <h2>Overview</h2>
-      <p>Welcome back! Here's what's happening today.</p>
+      <h2>{{ t('overview') }}</h2>
+      <p>{{ t('welcomeBack') }}</p>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card glass-panel" v-for="stat in stats" :key="stat.label">
-        <div class="stat-value">{{ stat.value }}</div>
-        <div class="stat-label">{{ stat.label }}</div>
+        <div class="stat-value">{{ formatNumber(stat.value) }}</div>
+        <div class="stat-label">{{ t(getTranslationKey(stat.label)) }}</div>
         <div class="stat-trend" :class="stat.trend > 0 ? 'positive' : 'negative'">
-          {{ stat.trend > 0 ? '+' : '' }}{{ stat.trend }}% from last week
+          {{ stat.trend > 0 ? '+' : '' }}{{ formatNumber(stat.trend) }}{{ t('fromLastWeek') }}
         </div>
       </div>
     </div>
 
     <div class="recent-activity glass-panel">
-      <h3>Recent Patients</h3>
+      <h3>{{ t('recentPatients') }}</h3>
       <table class="activity-table">
         <thead>
           <tr>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Status</th>
-            <th>Time</th>
+            <th>{{ t('name') }}</th>
+            <th>{{ t('nik') }}</th>
+            <th>{{ t('status') }}</th>
+            <th>{{ t('time') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="patient in recentPatients" :key="patient.id">
             <td>{{ patient.name }}</td>
             <td>{{ patient.id }}</td>
-            <td><span class="status-badge" :class="patient.status.toLowerCase()">{{ patient.status }}</span></td>
-            <td>{{ patient.time }}</td>
+            <td><span class="status-badge" :class="patient.status.toLowerCase()">{{ t(patient.status.toLowerCase()) }}</span></td>
+            <td>{{ formatDateTime(patient.createdAt) }}</td>
           </tr>
         </tbody>
       </table>
@@ -41,10 +41,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from '~/composables/useI18n'
+
+const { t, formatNumber, formatDateTime } = useI18n()
 
 const stats = ref([])
 const recentPatients = ref([])
 const loading = ref(true)
+
+const getTranslationKey = (label) => {
+  if (label === 'Total Patients') return 'totalPatients'
+  if (label === 'Active Encounters') return 'activeEncounters'
+  if (label === 'Pending Encounters') return 'pendingEncounters'
+  return label
+}
 
 onMounted(async () => {
   try {
@@ -62,7 +72,7 @@ onMounted(async () => {
       name: p.name,
       id: p.id.substring(0, 8).toUpperCase(),
       status: 'Admitted', // simplified for now
-      time: new Date(p.createdAt).toLocaleTimeString()
+      createdAt: p.createdAt
     }))
   } catch (error) {
     console.error('Error fetching dashboard stats', error)

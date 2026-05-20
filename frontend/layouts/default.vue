@@ -4,10 +4,10 @@
       <div class="logo">SIMRS Pro</div>
       <nav>
         <ul>
-          <li><NuxtLink to="/">Dashboard</NuxtLink></li>
-          <li><NuxtLink to="/patients">Patients</NuxtLink></li>
-          <li><NuxtLink to="/appointments">Appointments</NuxtLink></li>
-          <li><NuxtLink to="/settings">Settings</NuxtLink></li>
+          <li><NuxtLink to="/">{{ t('dashboard') }}</NuxtLink></li>
+          <li><NuxtLink to="/patients">{{ t('patients') }}</NuxtLink></li>
+          <li><NuxtLink to="/appointments">{{ t('appointments') }}</NuxtLink></li>
+          <li><NuxtLink to="/settings">{{ t('settings') }}</NuxtLink></li>
         </ul>
       </nav>
     </aside>
@@ -16,9 +16,27 @@
         <div class="tenant-info">
           <h1>{{ tenantName }}</h1>
         </div>
-        <div class="user-profile">
-          <span>{{ userName }} (Admin)</span>
-          <a href="#" @click.prevent="logout" class="logout-link">Logout</a>
+        <div class="topbar-actions">
+          <div class="language-selector">
+            <button 
+              class="lang-btn" 
+              :class="{ active: locale === 'en' }" 
+              @click="setLocale('en')"
+            >
+              🇺🇸 EN
+            </button>
+            <button 
+              class="lang-btn" 
+              :class="{ active: locale === 'id' }" 
+              @click="setLocale('id')"
+            >
+              🇮🇩 ID
+            </button>
+          </div>
+          <div class="user-profile">
+            <span>{{ userName }} (Admin)</span>
+            <a href="#" @click.prevent="logout" class="logout-link">{{ t('logout') }}</a>
+          </div>
         </div>
       </header>
       <div class="page-content">
@@ -31,10 +49,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from '~/composables/useI18n'
 
 const router = useRouter()
 const tenantName = ref('Loading...')
 const userName = ref('')
+
+const { locale, setLocale, t } = useI18n()
 
 onMounted(() => {
   const storedTenant = localStorage.getItem('tenantName')
@@ -123,6 +144,45 @@ const logout = () => {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.language-selector {
+  display: flex;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+  gap: 0.25rem;
+}
+
+.lang-btn {
+  background: none;
+  border: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.lang-btn:hover {
+  color: var(--text-color);
+}
+
+.lang-btn.active {
+  background-color: white;
+  color: var(--primary-color);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .user-profile {

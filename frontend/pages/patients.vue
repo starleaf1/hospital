@@ -1,67 +1,67 @@
 <template>
   <div class="patients-page">
     <div class="header">
-      <h2>Patients</h2>
-      <button class="primary-btn" @click="showAddModal = true">Add Patient</button>
+      <h2>{{ t('patients') }}</h2>
+      <button class="primary-btn" @click="showAddModal = true">{{ t('addPatient') }}</button>
     </div>
 
     <!-- ADD PATIENT MODAL -->
     <div class="modal-overlay" v-if="showAddModal">
       <div class="modal-content glass-panel">
-        <h3>Add New Patient</h3>
+        <h3>{{ t('addNewPatient') }}</h3>
         <form @submit.prevent="submitPatient" class="add-form">
           <div class="form-group">
-            <label>NIK</label>
+            <label>{{ t('nik') }}</label>
             <input v-model="newPatient.nik" required type="text" />
           </div>
           <div class="form-group">
-            <label>Name</label>
+            <label>{{ t('name') }}</label>
             <input v-model="newPatient.name" required type="text" />
           </div>
           <div class="form-group">
-            <label>Gender</label>
+            <label>{{ t('gender') }}</label>
             <select v-model="newPatient.gender" required>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
+              <option value="M">{{ t('M') }}</option>
+              <option value="F">{{ t('F') }}</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Birth Date</label>
+            <label>{{ t('birthDate') }}</label>
             <input v-model="newPatient.birthDate" required type="date" />
           </div>
           <div class="modal-actions">
-            <button type="button" class="secondary-btn" @click="showAddModal = false">Cancel</button>
-            <button type="submit" class="primary-btn">Save Patient</button>
+            <button type="button" class="secondary-btn" @click="showAddModal = false">{{ t('cancel') }}</button>
+            <button type="submit" class="primary-btn">{{ t('savePatient') }}</button>
           </div>
         </form>
       </div>
     </div>
 
     <div class="glass-panel content-card" v-if="loading">
-      Loading patients...
+      {{ t('loadingPatients') }}
     </div>
     
     <div class="glass-panel content-card" v-else>
       <table class="data-table">
         <thead>
           <tr>
-            <th>NIK</th>
-            <th>Name</th>
-            <th>Gender</th>
-            <th>Birth Date</th>
-            <th>Registered</th>
+            <th>{{ t('nik') }}</th>
+            <th>{{ t('name') }}</th>
+            <th>{{ t('gender') }}</th>
+            <th>{{ t('birthDate') }}</th>
+            <th>{{ t('registered') }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="patient in patients" :key="patient.id">
             <td>{{ patient.nik }}</td>
             <td>{{ patient.name }}</td>
-            <td>{{ patient.gender }}</td>
-            <td>{{ new Date(patient.birthDate).toLocaleDateString() }}</td>
-            <td>{{ new Date(patient.createdAt).toLocaleDateString() }}</td>
+            <td>{{ t(patient.gender) }}</td>
+            <td>{{ formatDate(patient.birthDate) }}</td>
+            <td>{{ formatDate(patient.createdAt) }}</td>
           </tr>
           <tr v-if="patients.length === 0">
-            <td colspan="5" class="empty-state">No patients found.</td>
+            <td colspan="5" class="empty-state">{{ t('noPatientsFound') }}</td>
           </tr>
         </tbody>
       </table>
@@ -71,6 +71,9 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from '~/composables/useI18n'
+
+const { t, formatDate } = useI18n()
 
 const patients = ref([])
 const loading = ref(true)
@@ -125,7 +128,7 @@ const submitPatient = async () => {
     await fetchPatients()
   } catch (error) {
     console.error('Error creating patient', error)
-    alert('Failed to add patient')
+    alert(t('failedToAddPatient'))
   }
 }
 
