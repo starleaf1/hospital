@@ -12,6 +12,10 @@ async function main() {
   console.log('Starting to seed database...');
 
   // 1. Clean existing data (optional but good for repeatable seeds)
+  await prisma.invoiceItem.deleteMany();
+  await prisma.invoice.deleteMany();
+  await prisma.tariffMaster.deleteMany();
+  await prisma.clinicalAction.deleteMany();
   await prisma.encounter.deleteMany();
   await prisma.patient.deleteMany();
   await prisma.servicePoint.deleteMany();
@@ -26,6 +30,46 @@ async function main() {
     }
   });
   console.log(`Created Tenant: ${hospital.name} with ID: ${hospital.id}`);
+
+  // 2.5 Create Clinical Actions
+  const action1 = await prisma.clinicalAction.create({
+    data: {
+      code: 'TND-001',
+      name: 'Konsultasi Dokter Umum'
+    }
+  });
+  console.log(`Created Clinical Action: ${action1.name} (${action1.code})`);
+
+  // 2.6 Create Tariff Masters for test Tenant
+  const tariffMandiri = await prisma.tariffMaster.create({
+    data: {
+      tenantId: hospital.id,
+      clinicalActionId: action1.id,
+      insuranceType: 'MANDIRI',
+      classType: 'NON_KELAS',
+      jasaSarana: 50000,
+      jasaDokter: 80000,
+      jasaPerawat: 10000,
+      costBHP: 10000,
+      totalTariff: 150000
+    }
+  });
+  console.log(`Created MANDIRI Tariff for ${action1.name}: ${tariffMandiri.totalTariff}`);
+
+  const tariffBpjs = await prisma.tariffMaster.create({
+    data: {
+      tenantId: hospital.id,
+      clinicalActionId: action1.id,
+      insuranceType: 'BPJS',
+      classType: 'KELAS_1',
+      jasaSarana: 15000,
+      jasaDokter: 25000,
+      jasaPerawat: 5000,
+      costBHP: 5000,
+      totalTariff: 50000
+    }
+  });
+  console.log(`Created BPJS Tariff for ${action1.name}: ${tariffBpjs.totalTariff}`);
 
   // 3. Create a Hospital Admin User
   const admin = await prisma.user.create({

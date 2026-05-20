@@ -5,6 +5,7 @@ import { AuthController } from '../controllers/AuthController';
 import { DashboardController } from '../controllers/DashboardController';
 import { MedicalNoteController } from '../controllers/MedicalNoteController';
 import { InvoiceController } from '../controllers/InvoiceController';
+import { BillingController } from '../controllers/BillingController';
 import { tenantMiddleware } from '../middlewares/tenantMiddleware';
 
 const router = Router();
@@ -22,6 +23,7 @@ router.get('/encounters', EncounterController.getAllEncounters);
 router.put('/encounters/:id', EncounterController.updateEncounter);
 router.delete('/encounters/:id', EncounterController.deleteEncounter);
 router.post('/encounters/:id/sync-satusehat', EncounterController.syncSatusehat);
+router.post('/encounters/:id/actions', BillingController.addClinicalAction);
 
 router.get('/encounters/:encounterId/notes', MedicalNoteController.getNotesByEncounter);
 router.post('/encounters/:encounterId/notes', MedicalNoteController.addNote);

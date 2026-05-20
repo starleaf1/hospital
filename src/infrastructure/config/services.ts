@@ -1,12 +1,15 @@
 import { IBpjsService } from '../../domain/interfaces/IBpjsService';
 import { ISatusehatService } from '../../domain/interfaces/ISatusehatService';
+import { IBillingService } from '../../domain/interfaces/IBillingService';
 import { MockBpjsService } from '../bpjs/MockBpjsService';
 import { SatusehatSandboxService } from '../satusehat/SatusehatSandboxService';
+import { BillingService } from '../../domain/services/BillingService';
 import { env } from './env';
 
 export interface IServices {
   bpjsService: IBpjsService;
   satusehatService: ISatusehatService;
+  billingService: IBillingService;
 }
 
 const createServices = (): IServices => {
@@ -18,10 +21,14 @@ const createServices = (): IServices => {
     ? new SatusehatSandboxService()
     : new SatusehatSandboxService(); // Fallback to sandbox for now
 
+  const billingService = new BillingService();
+
   return {
     bpjsService,
-    satusehatService
+    satusehatService,
+    billingService
   };
 };
 
 export const services = createServices();
+

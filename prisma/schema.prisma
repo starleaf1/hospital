@@ -20,6 +20,8 @@ model Tenant {
   users         User[]
   medicalNotes  MedicalNote[]
   invoices      Invoice[]
+  tariffMasters TariffMaster[]
+  invoiceItems  InvoiceItem[]
 }
 
 enum UserRole {
@@ -115,36 +117,61 @@ model MedicalNote {
   doctor       User      @relation(fields: [doctorId], references: [id])
 }
 
-enum InvoiceStatus {
-  DRAFT
-  UNPAID
-  PENDING_INSURANCE
-  PAID
-  CANCELLED
+model ClinicalAction {
+  id            String         @id @default(uuid())
+  code          String         @unique
+  name          String
+  tariffMasters TariffMaster[]
+  invoiceItems  InvoiceItem[]
+}
+
+model TariffMaster {
+  id               String         @id @default(uuid())
+  tenantId         String
+  clinicalActionId String
+  insuranceType    String         // e.g. "BPJS", "MANDIRI"
+  classType        String         // e.g. "KELAS_1", "VIP", "NON_KELAS"
+  jasaSarana       Int
+  jasaDokter       Int
+  jasaPerawat      Int
+  costBHP          Int
+  totalTariff      Int
+
+  tenant           Tenant         @relation(fields: [tenantId], references: [id])
+  clinicalAction   ClinicalAction @relation(fields: [clinicalActionId], references: [id])
+
+  @@unique([tenantId, clinicalActionId, insuranceType, classType])
 }
 
 model Invoice {
-  id          String        @id @default(uuid())
-  tenantId    String
-  encounterId String
-  status      InvoiceStatus @default(DRAFT)
-  totalAmount Float         @default(0)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id            String        @id @default(uuid())
+  tenantId      String
+  encounterId   String
+  status        String        @default("DRAFT")
+  paymentMethod String?
+  paidAt        DateTime?
+  totalAmount   Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 
-  tenant      Tenant        @relation(fields: [tenantId], references: [id])
-  encounter   Encounter     @relation(fields: [encounterId], references: [id])
-  items       InvoiceItem[]
+  tenant        Tenant        @relation(fields: [tenantId], references: [id])
+  encounter     Encounter     @relation(fields: [encounterId], references: [id])
+  items         InvoiceItem[]
 }
 
 model InvoiceItem {
-  id          String   @id @default(uuid())
-  invoiceId   String
-  description String
-  quantity    Int      @default(1)
-  unitPrice   Float
-  totalPrice  Float
-  createdAt   DateTime @default(now())
+  id                 String         @id @default(uuid())
+  tenantId           String
+  invoiceId          String
+  clinicalActionId   String
+  actionName         String
+  jasaSaranaSnapshot Int
+  jasaDokterSnapshot Int
+  totalPriceSnapshot Int
+  createdAt          DateTime       @default(now())
 
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id])
+  tenant             Tenant         @relation(fields: [tenantId], references: [id])
+  invoice            Invoice        @relation(fields: [invoiceId], references: [id])
+  clinicalAction     ClinicalAction @relation(fields: [clinicalActionId], references: [id])
 }
+

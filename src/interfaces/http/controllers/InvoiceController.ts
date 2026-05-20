@@ -33,22 +33,24 @@ export class InvoiceController {
 
       let totalAmount = 0;
       if (items && Array.isArray(items)) {
-        totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        totalAmount = items.reduce((sum, item) => sum + (item.totalPriceSnapshot ?? 0), 0);
       }
 
       const invoice = await prisma.invoice.create({
         data: {
           tenantId,
           encounterId,
-          status: status || 'DRAFT',
+          status: status ?? 'DRAFT',
           totalAmount,
           items: {
             create: items?.map((i: any) => ({
-              description: i.description,
-              quantity: i.quantity,
-              unitPrice: i.unitPrice,
-              totalPrice: i.quantity * i.unitPrice
-            })) || []
+              tenantId,
+              clinicalActionId: i.clinicalActionId,
+              actionName: i.actionName,
+              jasaSaranaSnapshot: i.jasaSaranaSnapshot ?? 0,
+              jasaDokterSnapshot: i.jasaDokterSnapshot ?? 0,
+              totalPriceSnapshot: i.totalPriceSnapshot ?? 0
+            })) ?? []
           }
         },
         include: { items: true }
@@ -66,13 +68,16 @@ export class InvoiceController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const invoice = await prisma.invoice.update({
+      const invoice = await prisma.invoice.findFirst({ where: { id, tenantId } });
+      if (!invoice) return res.status(404).json({ error: 'Invoice not found' });
+
+      const updated = await prisma.invoice.update({
         where: { id },
         data: { status },
         include: { items: true, encounter: { include: { patient: true } } }
       });
 
-      res.json({ message: 'Invoice status updated', data: invoice });
+      res.json({ message: 'Invoice status updated', data: updated });
     } catch (error) {
       next(error);
     }
