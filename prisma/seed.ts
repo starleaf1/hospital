@@ -34,10 +34,10 @@ async function main() {
       email: 'admin@citycentral.com',
       passwordHash: hashPassword('admin123'), // Secure password for demonstration
       name: 'Dr. Sarah Jenkins',
-      role: UserRole.HOSPITAL_ADMIN,
+      roles: [UserRole.HOSPITAL_ADMIN],
     }
   });
-  console.log(`Created Admin User: ${admin.name} (Role: ${admin.role})`);
+  console.log(`Created Admin User: ${admin.name} (Roles: ${admin.roles.join(', ')})`);
 
   // 4. Create Service Points
   const outpatient = await prisma.servicePoint.create({

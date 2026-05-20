@@ -63,6 +63,7 @@ const handleLogin = async () => {
     localStorage.setItem('tenantId', response.tenantId)
     localStorage.setItem('userName', response.name)
     localStorage.setItem('tenantName', response.tenantName)
+    localStorage.setItem('userRoles', JSON.stringify(response.roles ?? []))
     
     router.push('/')
   } catch (error) {

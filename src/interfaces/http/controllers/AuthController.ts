@@ -29,7 +29,7 @@ export class AuthController {
       res.json({
         id: user.id,
         name: user.name,
-        role: user.role,
+        roles: user.roles,
         tenantId: user.tenantId,
         tenantName: user.tenant?.name
       });

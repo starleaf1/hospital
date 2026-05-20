@@ -87,4 +87,38 @@ export class EncounterController {
       next(error);
     }
   }
+
+  static async updateEncounter(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenantId = (req as any).tenantId;
+      const { id } = req.params;
+      const { status, patientId, servicePointId, bpjsSepNumber, satusehatEncounterId } = req.body;
+
+      const encounter = await prisma.encounter.findFirst({ where: { id, tenantId } });
+      if (!encounter) return res.status(404).json({ error: 'Encounter not found' });
+
+      const updated = await prisma.encounter.update({
+        where: { id },
+        data: { status, patientId, servicePointId, bpjsSepNumber, satusehatEncounterId }
+      });
+      res.json({ message: 'Encounter updated', data: updated });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  static async deleteEncounter(req: Request, res: Response, next: NextFunction) {
+    try {
+      const tenantId = (req as any).tenantId;
+      const { id } = req.params;
+      
+      const encounter = await prisma.encounter.findFirst({ where: { id, tenantId } });
+      if (!encounter) return res.status(404).json({ error: 'Encounter not found' });
+
+      await prisma.encounter.delete({ where: { id } });
+      res.json({ message: 'Encounter deleted' });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
