@@ -1,3 +1,8 @@
 .env
 node_modules
 dist
+
+# Nuxt
+.nuxt
+.output
+frontend/tsconfig.json
